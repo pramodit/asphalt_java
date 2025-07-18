@@ -1,103 +1,85 @@
-// last edited sep 19 2018
-
-import java.awt.AWTException;
-import java.awt.Robot;
-import java.awt.event.MouseEvent;
+import java.awt.*;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.Timer;
 import java.util.TimerTask;
 
 /**
- * AsphaltCredits Asphalt Game to earn credits
- * Simulation of the Game Play.
+ * AsphaltGameBot - A lightweight automation bot for Asphalt 8
+ * Simulates race replays and nitro boosts to earn credits hands-free.
  *
- * @author Pramod
- * @since 15-Sept-2018.
+ * Developed by: Pramod M
+ * Date: Sept 15, 2018
  */
 
-public class AsphaltCredits {
-	private static Robot robot = null;  
-	private static int totalRaces = 0; 
+public class AsphaltGameBot {
 
-	public static void main(String[] args) {
-		try {
-			robot = new Robot();   
-		} catch (AWTException awtExc) {         
-	 		awtExc.printStackTrace();
-		}
+    private static Robot robot;
+    private static int raceCount = 0;
 
-		Timer nitro = new Timer(); 
-		Timer replay = new Timer(); 
+    public static void main(String[] args) {
+        try {
+            robot = new Robot();
+            robot.setAutoDelay(200);
+        } catch (AWTException e) {
+            System.err.println("Robot initialization failed.");
+            e.printStackTrace();
+            return;
+        }
 
-		TimerTask replayTask = new TimerTask() {
-			@Override
-			public void run() {
- 				totalRaces++;
-				generateClick();
-			}
-		};
-		// Thread.sleep(100000);
-		TimerTask nitroTask = new TimerTask() {
-			@Override
-			public void run() {
-				generateNitro();
-			}
-		};
- 		// replay.schedule(replayTask, 144000, 144000);
-		// support for S6 Fr. Guiana rev. (hommage)
-		replay.schedule(replayTask, 212000, 212000);
- 		// nitro.schedule(nitroTask, 8000, 8000);
-		nitro.schedule(nitroTask, 1400, 1400);
-	}
+        Timer nitroTimer = new Timer();
+        Timer replayTimer = new Timer();
 
-	public static void generateClick() {
-		// for max window
-		// robot.mouseMove(1150, 660);
-   		robot.mouseMove(700, 620);
- 		// click next
-		robot.delay(1500);
-		robot.mousePress(MouseEvent.BUTTON1_DOWN_MASK);
-		robot.mouseRelease(MouseEvent.BUTTON1_DOWN_MASK);
-		// System.out.println("Race finished");
+        // Schedule nitro boost every 1.4 seconds
+        nitroTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                triggerNitroBoost();
+            }
+        }, 1400, 1400);
 
-		// click next (event details)
-		robot.delay(1500);
- 		robot.mousePress(MouseEvent.BUTTON1_DOWN_MASK);
-		robot.mouseRelease(MouseEvent.BUTTON1_DOWN_MASK);
-		// System.out.println("Position");
+        // Schedule race replay every 212 seconds
+        replayTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                raceCount++;
+                replayRace();
+                System.out.println("Total races completed: " + raceCount);
+            }
+        }, 212_000, 212_000);
+    }
 
-		// move coursor to replay button
-		// for max window
-   		// robot.mouseMove(200, 660);
- 		robot.mouseMove(100, 620);
-		robot.delay(1500);
-		robot.mousePress(MouseEvent.BUTTON1_DOWN_MASK);
-		robot.mouseRelease(MouseEvent.BUTTON1_DOWN_MASK);
-		// System.out.println("replay");
+    private static void triggerNitroBoost() {
+        robot.keyPress(KeyEvent.VK_SPACE);
+        robot.delay(50);
+        robot.keyRelease(KeyEvent.VK_SPACE);
+    }
 
-		// confirm click
-		// for max window
-		// robot.mouseMove(800, 540);
-		robot.mouseMove(500, 490);
-		robot.delay(1500);
-		robot.mousePress(MouseEvent.BUTTON1_DOWN_MASK);
-		robot.mouseRelease(MouseEvent.BUTTON1_DOWN_MASK);
-		// System.out.println("yes");
+    private static void clickAt(int x, int y) {
+        robot.mouseMove(x, y);
+        robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+        robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+    }
 
-		// next to start race
-		// robot.mouseMove(1150, 660);
-		robot.mouseMove(700, 620);
-		robot.delay(1000);
-		robot.mousePress(MouseEvent.BUTTON1_DOWN_MASK);
-		robot.mouseRelease(MouseEvent.BUTTON1_DOWN_MASK);
-		// System.out.println("Start race");
-		System.out.println("Total races:"+totalRaces);
-	}
+    private static void replayRace() {
+        // Click to finish race
+        clickAt(700, 620);
+        robot.delay(1500);
 
-	public static void generateNitro() {
-		robot.keyPress(KeyEvent.VK_SPACE);
- 		robot.delay(50);
-		robot.keyRelease(KeyEvent.VK_SPACE);
-		// System.out.println("nitro1");
-	}
- }
+        // Click through result screens
+        clickAt(700, 620);
+        robot.delay(1500);
+
+        // Click replay button
+        clickAt(100, 620);
+        robot.delay(1500);
+
+        // Confirm replay
+        clickAt(500, 490);
+        robot.delay(1500);
+
+        // Start next race
+        clickAt(700, 620);
+        robot.delay(1000);
+    }
+}
